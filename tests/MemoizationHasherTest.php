@@ -33,6 +33,7 @@ class MemoizationHasherTest extends TestCase
         $this->assertNotEquals($this->hash(1), $this->hash('1'));
         $this->assertNotEquals($this->hash(1.0), $this->hash(1));
         $this->assertNotEquals($this->hash(true), $this->hash(1));
+        $this->assertNotEquals($this->hash(null), $this->hash(0));
     }
 
     public function testSequentialArraysInSameOrderHaveSameHashes()
@@ -62,5 +63,99 @@ class MemoizationHasherTest extends TestCase
     public function testDictionariesWithDifferentValuesHaveDifferentHashes()
     {
         $this->assertNotEquals($this->hash(['foo' => 1, 'bar' => 2]), $this->hash(['foo' => 2, 'bar' => 1]));
+    }
+
+    public function testJsonableObjectsWithSameValuesHaveSameHashes()
+    {
+        $obj1 = new class {
+            public function toJson()
+            {
+                return '{"a":1,"b":2}';
+            }
+        };
+
+        $obj2 = new class {
+            public function toJson()
+            {
+                return '{"a":1,"b":2}';
+            }
+        };
+
+        $this->assertEquals($this->hash($obj1), $this->hash($obj2));
+    }
+
+    public function testJsonableObjectsWithDifferentValuesHaveDifferentHashes()
+    {
+        $obj1 = new class {
+            public function toJson()
+            {
+                return '{"a":1,"b":2}';
+            }
+        };
+
+        $obj2 = new class {
+            public function toJson()
+            {
+                return '{"a":2,"b":1}';
+            }
+        };
+
+        $this->assertNotEquals($this->hash($obj1), $this->hash($obj2));
+    }
+
+    public function testArrayableObjectsWithSameValuesHaveSameHashes()
+    {
+        $obj1 = new class {
+            public function toArray()
+            {
+                return ['a' => 1, 'b' => 2];
+            }
+        };
+
+        $obj2 = new class {
+            public function toArray()
+            {
+                return ['b' => 2, 'a' => 1];
+            }
+        };
+
+        $this->assertEquals($this->hash($obj1), $this->hash($obj2));
+    }
+
+    public function testArrayableObjectsWithDifferentValuesHaveDifferentHashes()
+    {
+        $obj1 = new class {
+            public function toArray()
+            {
+                return ['a' => 1, 'b' => 2];
+            }
+        };
+
+        $obj2 = new class {
+            public function toArray()
+            {
+                return ['a' => 2, 'b' => 1];
+            }
+        };
+
+        $this->assertNotEquals($this->hash($obj1), $this->hash($obj2));
+    }
+
+    public function testSerializableObjectsWithSameValuesHaveSameHashes()
+    {
+        $obj1 = (object) ['a' => 1, 'b' => 2];
+
+        $obj2 = (object) ['a' => 1, 'b' => 2];
+
+        $this->assertEquals($this->hash($obj1), $this->hash($obj2));
+    }
+
+    public function testSerializableObjectsWithDifferentValuesHaveDifferentHashes()
+    {
+        $obj1 = (object) ['a' => 1, 'b' => 2];
+
+        $obj2 = (object) ['a' => 2, 'b' => 1];
+
+        $this->assertNotEquals($this->hash($obj1), $this->hash($obj2));
     }
 }

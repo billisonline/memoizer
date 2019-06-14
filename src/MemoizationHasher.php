@@ -11,25 +11,45 @@ class MemoizationHasher
         return static::$instance ?: (static::$instance = new static);
     }
 
-    private function isSequentialArray($arr): bool
+    private function isScalar($value): bool
     {
-        return (array_keys($arr) === range(0, count($arr) - 1));
-    }
-
-    private function isDictionary(array $arr): bool
-    {
-        return !$this->isSequentialArray($arr);
-    }
-
-    public function hash($value): string
-    {
-        if (
+        return (
             is_string($value)
             || is_int($value)
             || is_float($value)
             || is_bool($value)
             || is_null($value)
-        ) {
+        );
+    }
+
+    private function isSequentialArray($arr): bool
+    {
+        return is_array($arr) && (array_keys($arr) === range(0, count($arr) - 1));
+    }
+
+    private function isDictionary($arr): bool
+    {
+        return is_array($arr) && !$this->isSequentialArray($arr);
+    }
+
+    private function isJsonable($object): bool
+    {
+        return method_exists($object, 'toJson');
+    }
+
+    private function isArrayable($object): bool
+    {
+        return method_exists($object, 'toArray');
+    }
+
+    /**
+     * @param $value
+     * @return string
+     * @throws \Exception
+     */
+    public function hash($value): string
+    {
+        if ($this->isScalar($value)) {
             return md5(gettype($value).':'.strval($value));
         }
 
@@ -44,5 +64,21 @@ class MemoizationHasher
 
             return md5(implode('', $value));
         }
+
+        elseif (is_object($object = $value)) {
+            if ($this->isJsonable($object)) {
+                return md5($object->toJson());
+            }
+
+            elseif ($this->isArrayable($object)) {
+                return $this->hash($object->toArray());
+            }
+
+            else {
+                return md5(serialize($object));
+            }
+        }
+
+        throw new \Exception;
     }
 }
