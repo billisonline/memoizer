@@ -16,7 +16,12 @@ class MemoizationHasher
         return (array_keys($arr) === range(0, count($arr) - 1));
     }
 
-    public function hash($value, $key=null): string
+    private function isDictionary(array $arr): bool
+    {
+        return !$this->isSequentialArray($arr);
+    }
+
+    public function hash($value): string
     {
         if (
             is_string($value)
@@ -30,6 +35,14 @@ class MemoizationHasher
 
         elseif ($this->isSequentialArray($value)) {
             return md5(array_reduce($value, function (string $result, $next) {return $result.$this->hash($next);}, ''));
+        }
+
+        elseif ($this->isDictionary($value)) {
+            $value = array_map(function ($key, $item) {return $this->hash($key).$this->hash($item);}, array_keys($value), $value);
+
+            sort($value);
+
+            return md5(implode('', $value));
         }
     }
 }
