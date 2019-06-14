@@ -11,6 +11,11 @@ class MemoizationHasher
         return static::$instance ?: (static::$instance = new static);
     }
 
+    private function isSequentialArray($arr): bool
+    {
+        return (array_keys($arr) === range(0, count($arr) - 1));
+    }
+
     public function hash($value, $key=null): string
     {
         if (
@@ -21,6 +26,10 @@ class MemoizationHasher
             || is_null($value)
         ) {
             return md5(gettype($value).':'.strval($value));
+        }
+
+        elseif ($this->isSequentialArray($value)) {
+            return md5(array_reduce($value, function (string $result, $next) {return $result.$this->hash($next);}, ''));
         }
     }
 }

@@ -34,4 +34,18 @@ class MemoizationHasherTest extends TestCase
         $this->assertNotEquals($this->hash(1.0), $this->hash(1));
         $this->assertNotEquals($this->hash(true), $this->hash(1));
     }
+
+    public function testSequentialArraysInSameOrderHaveSameHashes()
+    {
+        $this->assertEquals($this->hash([1, 2, 3]), $this->hash([1, 2, 3]));
+        $this->assertEquals($this->hash(['foo', 'bar', 'baz']), $this->hash(['foo', 'bar', 'baz']));
+        $this->assertEquals($this->hash([1, 2, 3, ['foo', 'bar']]), $this->hash([1, 2, 3, ['foo', 'bar']]));
+    }
+
+    public function testSequentialArraysInDifferentOrderHaveDifferentHashes()
+    {
+        $this->assertNotEquals($this->hash([1, 2, 3]), $this->hash([3, 2, 1]));
+        $this->assertNotEquals($this->hash(['foo', 'bar', 'baz']), $this->hash(['foo', 'baz', 'bar']));
+        $this->assertNotEquals($this->hash([1, 2, 3, ['foo', 'bar']]), $this->hash([1, 2, 3, ['bar', 'foo']]));
+    }
 }
