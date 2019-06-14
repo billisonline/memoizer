@@ -1,12 +1,12 @@
 {
-    "name": "vendor/project",
-    "description": "A description of the library",
+    "name": "byanelli/memoizer",
+    "description": "Memoizes functions",
     "license": "MIT",
     "type": "library",
     "authors": [
         {
             "name": "Bill Yanelli",
-            "email": "bill.yanelli@gmail.com"
+            "email": "dev@billyanelli.com"
         }
     ],
     "require": {
